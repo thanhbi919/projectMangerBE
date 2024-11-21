@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\ProjectStatus;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -52,6 +53,7 @@ class ProjectController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'type_id' => 'nullable|exists:types,id',
+            'status' => 'nullable|in:active,inactive',
             'members' => 'required|array',
             'members.*.user_id' => 'required|exists:users,id',
             'members.*.role_id' => 'required|exists:roles,id',
@@ -119,6 +121,7 @@ class ProjectController extends Controller
             'data' => [
                 'id' => $project->id,
                 'title' => $project->title,
+                'status_id' => $project->status_id,
                 'description' => $project->description,
                 'type_id' => $project->type_id,
                 'members' => $project->users,
@@ -132,11 +135,13 @@ class ProjectController extends Controller
 
         $projects = $user->projects()->with(['users' => function ($query) {
             $query->select('users.id', 'users.name');
-        }])->paginate(10);
+        }])->get();
 
         return response()->json([
             'status' => 'success',
             'data' => $projects,
         ]);
     }
+
+
 }

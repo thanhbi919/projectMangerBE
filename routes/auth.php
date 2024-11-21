@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
@@ -40,7 +41,6 @@ Route::post('/api/auth/logout', [AuthenticatedSessionController::class, 'destroy
     ->middleware('auth')
     ->name('logout');
 
-
 //Route::get('/api/projects', [ProjectController::class, 'index'])->middleware('auth')->name('projects.index');
 //Route::get('/api/projects/{id}', [ProjectController::class, 'show'])->middleware('auth')->name('projects.show');
 //Route::post('/api/projects', [ProjectController::class, 'store'])->middleware('auth')->name('projects.store');
@@ -48,6 +48,7 @@ Route::post('/api/auth/logout', [AuthenticatedSessionController::class, 'destroy
 //Route::put('/api/projects/{id}', [ProjectController::class, 'update'])->middleware('auth')->name('projects.update');
 
 Route::apiResource('/api/projects', ProjectController::class)->middleware('auth');
+Route::get('/api/project-status', [ProjectStatusController::class, 'index'])->middleware('auth')->name('project-status');
 
 Route::get('/api/types', [TypeController::class, 'index'])->middleware('auth')->name('types.index');
 Route::get('/api/users', [UserController::class, 'index'])->middleware('auth')->name('users.index');

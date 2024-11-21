@@ -26,6 +26,11 @@ class Project extends Model
         return $this->belongsTo(Type::class);
     }
 
+    public function status()
+    {
+        return $this->belongsTo(Status::class);
+    }
+
     public function users()
     {
         return $this->belongsToMany(User::class)->withPivot('role_id')->withTimestamps();
