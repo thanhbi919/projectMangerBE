@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -151,5 +152,30 @@ class ProjectController extends Controller
             'status' => 'success',
             'data' => $projects,
         ]);
+    }
+
+    /**
+     * Get list of project members
+     *
+     * @param  int  $id  Project ID
+     */
+    public function getProjectMembers(int $id): JsonResponse
+    {
+
+        $project = Project::with('users')->find($id);
+
+        if (! $project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        $members = $project->users->map(function ($user) {
+            return [
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'role_id' => $user->pivot->role_id,
+            ];
+        });
+
+        return response()->json($members, 200);
     }
 }

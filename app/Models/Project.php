@@ -38,4 +38,10 @@ class Project extends Model
     {
         return $this->belongsToMany(User::class)->withPivot('role_id')->withTimestamps();
     }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
 }

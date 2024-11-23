@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TaskMetadataController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,12 @@ Route::post('/api/auth/logout', [AuthenticatedSessionController::class, 'destroy
 
 Route::apiResource('/api/projects', ProjectController::class)->middleware('auth');
 Route::get('/api/project-status', [ProjectStatusController::class, 'index'])->middleware('auth')->name('project-status');
+Route::get('/api/projects/{id}/members', [ProjectController::class, 'getProjectMembers'])->name('projects.members');
+
+Route::get('/api/task/types', [TaskMetadataController::class, 'getTaskTypes'])->name('task.types');
+Route::get('/api/task/statuses', [TaskMetadataController::class, 'getTaskStatuses'])->name('task.statuses');
+Route::get('/api/task/priorities', [TaskMetadataController::class, 'getPriorities'])->name('priorities');
+
 
 Route::get('/api/types', [TypeController::class, 'index'])->middleware('auth')->name('types.index');
 Route::get('/api/users', [UserController::class, 'index'])->middleware('auth')->name('users.index');
