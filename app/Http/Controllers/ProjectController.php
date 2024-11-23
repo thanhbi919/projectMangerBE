@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
-use App\Models\ProjectStatus;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -11,13 +10,16 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'name' => 'required|string|max:50',
+            'title' => 'required|string|max:50',
+            'description' => 'string:max:100',
             'type_id' => 'nullable|exists:types,id',
             'members' => 'required|array',
             'members.*.user_id' => 'required|exists:users,id',
             'members.*.role_id' => 'required|exists:roles,id',
+            'status_id' => 'required|exists:project_status,id',
+            'start_date' => 'required|date_format:Y-m-d',
+            'end_date' => 'required|date_format:Y-m-d|after:start_date',
         ]);
 
         if (! $validated) {
@@ -49,14 +51,16 @@ class ProjectController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'name' => 'required|string|max:50',
+            'title' => 'required|string|max:50',
+            'description' => 'string:max:100',
             'type_id' => 'nullable|exists:types,id',
-            'status' => 'nullable|in:active,inactive',
             'members' => 'required|array',
             'members.*.user_id' => 'required|exists:users,id',
             'members.*.role_id' => 'required|exists:roles,id',
+            'status_id' => 'required|exists:project_status,id',
+            'start_date' => 'required|date_format:Y-m-d',
+            'end_date' => 'required|date_format:Y-m-d|after:start_date',
         ]);
         if (! $validated) {
             return response()->json([
@@ -71,6 +75,9 @@ class ProjectController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'type_id' => $request->type_id,
+            'status_id' => $request->status_id,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
         ]);
 
         if ($request->has('members')) {
@@ -125,6 +132,9 @@ class ProjectController extends Controller
                 'description' => $project->description,
                 'type_id' => $project->type_id,
                 'members' => $project->users,
+                'start_date' => $project->start_date,
+                'end_date' => $project->end_date,
+
             ],
         ]);
     }
@@ -142,6 +152,4 @@ class ProjectController extends Controller
             'data' => $projects,
         ]);
     }
-
-
 }

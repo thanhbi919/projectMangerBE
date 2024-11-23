@@ -41,7 +41,7 @@ Route::post('/api/auth/logout', [AuthenticatedSessionController::class, 'destroy
     ->middleware('auth')
     ->name('logout');
 
-//Route::get('/api/projects', [ProjectController::class, 'index'])->middleware('auth')->name('projects.index');
+//Route::get('/api/projects', [ProjectController::class, 'index'])->middleware('auth')->name(' projects.index');
 //Route::get('/api/projects/{id}', [ProjectController::class, 'show'])->middleware('auth')->name('projects.show');
 //Route::post('/api/projects', [ProjectController::class, 'store'])->middleware('auth')->name('projects.store');
 //Route::delete('/api/projects/{id}', [ProjectController::class, 'destroy'])->middleware('auth')->name('projects.destroy');

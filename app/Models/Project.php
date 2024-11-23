@@ -16,6 +16,9 @@ class Project extends Model
         'title',
         'description',
         'type_id',
+        'status',
+        'start_date',
+        'end_date',
     ];
 
     protected $dates = ['deleted_at'];
