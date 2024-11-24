@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Priority;
+use App\Models\TaskPriority;
 use App\Models\TaskStatus;
 use App\Models\TaskType;
 use Illuminate\Http\JsonResponse;
@@ -34,7 +34,7 @@ class TaskMetadataController extends Controller
      */
     public function getPriorities(): JsonResponse
     {
-        $priorities = Priority::all(['id', 'name']);
+        $priorities = TaskPriority::all(['id', 'name']);
 
         return response()->json($priorities, 200);
     }

@@ -146,7 +146,8 @@ class ProjectController extends Controller
 
         $projects = $user->projects()->with(['users' => function ($query) {
             $query->select('users.id', 'users.name');
-        }])->get();
+        }])->withCount('tasks')->get();
+
 
         return response()->json([
             'status' => 'success',
@@ -177,5 +178,20 @@ class ProjectController extends Controller
         });
 
         return response()->json($members, 200);
+    }
+
+    public function getTaskCount($projectId)
+    {
+        // Tìm dự án theo ID
+        $project = Project::findOrFail($projectId);
+
+        // Đếm số lượng task thuộc về dự án này
+        $taskCount = $project->tasks()->count();
+
+        // Trả về kết quả dưới dạng JSON
+        return response()->json([
+            'project_id' => $project->id,
+            'task_count' => $taskCount,
+        ]);
     }
 }

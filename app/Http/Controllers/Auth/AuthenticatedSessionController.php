@@ -15,19 +15,22 @@ class AuthenticatedSessionController extends Controller
 {
     /**
      * Handle an incoming authentication request.
+     *
      * @throws ValidationException
      */
     public function store(LoginRequest $request): \Illuminate\Http\JsonResponse
     {
 
-        try{
+        try {
             $request->authenticate();
             $request->session()->regenerate();
-            return response()->json(['message' => 'Successfully logged in.'], Response::HTTP_OK);
-        }catch (Exception $e){
+
+            $user = Auth::user();
+
+            return response()->json(['message' => 'Successfully logged in.', 'user_id' => $user->id], Response::HTTP_OK);
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], ResponseAlias::HTTP_BAD_REQUEST);
         }
-
 
     }
 
@@ -36,7 +39,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): Response
     {
-//        Auth::guard('web')->logout();
+        //        Auth::guard('web')->logout();
 
         Auth::logout();
         $request->session()->invalidate();

@@ -9,6 +9,7 @@ class Task extends Model
 {
     use HasFactory;
 
+
     protected $table = 'tasks';
 
     protected $fillable = [
@@ -21,6 +22,9 @@ class Task extends Model
         'priority_id',
         'type_id',
         'status_id',
+        'spent_time',
+        'estimated_time',
+        'remaining_time',
     ];
 
     // Relationships
@@ -29,24 +33,36 @@ class Task extends Model
         return $this->belongsTo(Project::class);
     }
 
-    public function assignedUser()
+    public function assignTo()
     {
         return $this->belongsTo(User::class, 'assign_to');
     }
 
     public function priority()
     {
-        return $this->belongsTo(Priority::class);
+        return $this->belongsTo(TaskPriority::class, 'priority_id');
     }
 
     public function type()
     {
-        return $this->belongsTo(TaskType::class);
+        return $this->belongsTo(TaskType::class, 'type_id');
     }
 
     public function status()
     {
         return $this->belongsTo(TaskStatus::class, 'status_id');
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(TaskLog::class);
+    }
+
+    public function updateTimeSpent()
+    {
+        $this->spent_time = $this->logs()->sum('logged_time');
+
+        $this->save(); // Lưu lại
     }
 }
 
