@@ -18,16 +18,21 @@ class RegisteredUserController extends Controller
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
         try {
-            $request->validate([
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-                'password' => ['required'],
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|string|min:6',
+                'department_id' => 'required|exists:departments,id',
+                'image' => 'nullable|image|max:2048', // Validate image file
+                'phone_number' => 'nullable|string|max:20',
             ]);
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->string('password')),
-            ]);
+
+            if ($request->hasFile('image')) {
+                $validatedData['image'] = $request->file('image')->store('users/images', 'public');
+            }
+            $validatedData['password'] = Hash::make($validatedData['password']);
+
+            $user = User::create($validatedData);
 
             event(new Registered($user));
 
@@ -37,6 +42,6 @@ class RegisteredUserController extends Controller
             ]);
         }
 
-        return response()->json(['message' => 'User registered successfully.']);
+        return response()->json(['message' => 'User registered successfully.', 'user' => $user]);
     }
 }

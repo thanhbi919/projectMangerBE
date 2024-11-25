@@ -4,14 +4,17 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory;
+
+    /**
+     * @var \Illuminate\Support\HigherOrderCollectionProxy|mixed
+     */
+
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +25,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'image',
+        'phone_number',
+        'department_id',
     ];
 
     /**
@@ -33,7 +39,6 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-
 
     /**
      * Get the attributes that should be cast.
@@ -48,8 +53,13 @@ class User extends Authenticatable
         ];
     }
 
-    public function projects(){
+    public function projects()
+    {
         return $this->belongsToMany(Project::class)->withPivot('role_id')->withTimestamps();
     }
 
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
 }

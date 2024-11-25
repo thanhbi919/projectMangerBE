@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\RoleController;
@@ -60,7 +61,7 @@ Route::get('/api/tasks/priorities', [TaskMetadataController::class, 'getPrioriti
 Route::apiResource('/api/tasks', TaskController::class)->middleware('auth');
 Route::post('/api/tasks/log-work', [TaskLogController::class, 'logWork'])->middleware('auth')->name('log-work');
 
-
 Route::get('/api/types', [TypeController::class, 'index'])->middleware('auth')->name('types.index');
-Route::get('/api/users', [UserController::class, 'index'])->middleware('auth')->name('users.index');
+Route::apiResource('/api/users', UserController::class)->middleware('auth');
 Route::get('/api/roles', [RoleController::class, 'index'])->middleware('auth')->name('roles.index');
+Route::get('/api/departments', [DepartmentController::class, 'index'])->middleware('auth')->name('departments.index');
