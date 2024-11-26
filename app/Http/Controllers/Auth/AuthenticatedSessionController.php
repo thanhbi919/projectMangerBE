@@ -27,7 +27,7 @@ class AuthenticatedSessionController extends Controller
 
             $user = Auth::user();
 
-            return response()->json(['message' => 'Successfully logged in.', 'user_id' => $user->id], Response::HTTP_OK);
+            return response()->json(['message' => 'Successfully logged in.', 'data' => $user], Response::HTTP_OK);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], ResponseAlias::HTTP_BAD_REQUEST);
         }
@@ -48,4 +48,14 @@ class AuthenticatedSessionController extends Controller
 
         return response()->noContent();
     }
+
+    public function currentUser(Request $request)
+    {
+        $user = auth()->user();
+        if ($user) {
+            return response()->json($user, 200);
+        }
+        return response()->json(['message' => 'Not authenticated'], 401);
+    }
+
 }

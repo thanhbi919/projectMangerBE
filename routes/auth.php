@@ -25,6 +25,10 @@ Route::post('/api/auth/login', [AuthenticatedSessionController::class, 'store'])
     ->middleware('guest')
     ->name('login');
 
+Route::get('/api/auth/user', [AuthenticatedSessionController::class, 'currentUser'])
+    ->middleware('auth')
+    ->name('current-user');
+
 Route::post('/api/auth/forgot-password', [PasswordResetLinkController::class, 'store'])
     ->middleware('guest')
     ->name('password.email');
