@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Task;
+use App\Models\User;
 use App\Observers\TaskObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,5 +33,9 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Task::observe(TaskObserver::class);
+
+        Gate::define('create-task', function (User $user,Task $task) {
+            return $user->department()->name === 'PM';
+        });
     }
 }

@@ -91,7 +91,7 @@ class TaskController extends Controller
 
         $projectIds = $user->projects()->pluck('projects.id')->toArray();
 
-        $tasks = Task::with(['project', 'assignTo', 'priority', 'type', 'status'])
+        $tasks = Task::with(['project', 'assignTo', 'priority', 'type', 'status', 'logs.user'])
             ->whereIn('project_id', $projectIds);
 
         // Áp dụng bộ lọc (filter)

@@ -62,7 +62,7 @@ class Task extends Model
     {
         $this->spent_time = $this->logs()->sum('logged_time');
 
-        $this->save(); // Lưu lại
+        $this->save();
     }
 }
 
