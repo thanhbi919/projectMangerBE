@@ -42,13 +42,18 @@ class TaskObserver
      * Handle the Task "force deleted" event.
      */
     public function forceDeleted(Task $task): void
+
     {
         //
     }
 
+
     public function saving(Task $task)
     {
-        if ($task->estimated_time !== null && $task->spent_time !== null) {
+        if ($task->estimated_time !== null) {
+            if( $task->spent_time !== null){
+                $task->remaining_time = $task->estimated_time;
+            }
             $task->remaining_time = max($task->estimated_time - $task->spent_time, 0);
         } else {
             $task->remaining_time = null; // Nếu không có dữ liệu, để trống

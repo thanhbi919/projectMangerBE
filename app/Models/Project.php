@@ -16,7 +16,7 @@ class Project extends Model
         'title',
         'description',
         'type_id',
-        'status',
+        'status_id',
         'start_date',
         'end_date',
     ];
@@ -31,7 +31,7 @@ class Project extends Model
 
     public function status()
     {
-        return $this->belongsTo(Status::class);
+        return $this->belongsTo(ProjectStatus::class);
     }
 
     public function users()

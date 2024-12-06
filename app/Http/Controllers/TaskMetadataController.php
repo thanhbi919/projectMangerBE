@@ -24,7 +24,7 @@ class TaskMetadataController extends Controller
      */
     public function getTaskStatuses(): JsonResponse
     {
-        $statuses = TaskStatus::all(['id', 'name']);
+        $statuses = TaskStatus::orderBy('id')->get(['id', 'name']);
 
         return response()->json($statuses, 200);
     }

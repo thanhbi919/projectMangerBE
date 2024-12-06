@@ -13,7 +13,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:50',
             'title' => 'required|string|max:50',
-            'description' => 'string:max:100',
+            'description' => 'string',
             'type_id' => 'nullable|exists:types,id',
             'members' => 'required|array',
             'members.*.user_id' => 'required|exists:users,id',
@@ -35,6 +35,9 @@ class ProjectController extends Controller
             'name' => $request->name,
             'type_id' => $request->type_id,
             'description' => $request->description,
+            'status_id' => $request->status_id,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
         ]);
 
         foreach ($request->members as $member) {
@@ -54,7 +57,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:50',
             'title' => 'required|string|max:50',
-            'description' => 'string:max:100',
+            'description' => 'string',
             'type_id' => 'nullable|exists:types,id',
             'members' => 'required|array',
             'members.*.user_id' => 'required|exists:users,id',
@@ -144,16 +147,26 @@ class ProjectController extends Controller
     {
         $user = $request->user();
 
-        $projects = $user->projects()->with(['users' => function ($query) {
-            $query->select('users.id', 'users.name');
-        }])->withCount('tasks')->get();
-
+        if ($user->department && strtolower($user->department->name) === 'admin') {
+            $projects = Project::with(['users' => function ($query) {
+                $query->select('users.id', 'users.name', 'users.image');
+            }])
+                ->withCount('tasks')
+                ->get();
+        } else {
+            $projects = $user->projects()->with(['users' => function ($query) {
+                $query->select('users.id', 'users.name', 'users.image');
+            }])
+                ->withCount('tasks')
+                ->get();
+        }
 
         return response()->json([
             'status' => 'success',
             'data' => $projects,
         ]);
     }
+
 
     /**
      * Get list of project members

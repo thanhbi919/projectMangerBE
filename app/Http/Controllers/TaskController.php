@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\TaskHistory;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class TaskController extends Controller
 {
@@ -24,7 +28,9 @@ class TaskController extends Controller
             'assign_to' => 'nullable|exists:users,id',
             'priority_id' => 'required|exists:task_priorities,id',
             'type_id' => 'required|exists:task_types,id',
-            //            'status_id' => 'required|exists:task_status,id',
+            'status_id' => 'required|exists:task_status,id',
+            'estimated_time' => 'nullable|integer|min:0',
+            'created_by' => 'nullable|exists:users,id',
         ]);
 
         // Validate if the user is part of the project
@@ -33,6 +39,14 @@ class TaskController extends Controller
 
             if (! $project->users()->where('users.id', $validated['assign_to'])->exists()) {
                 return response()->json(['error' => 'Assigned user must be part of the project'], 422);
+            }
+        }
+
+        if ($validated['created_by']) {
+            $project = Project::find($validated['project_id']);
+
+            if (! $project->users()->where('users.id', $validated['created_by'])->exists()) {
+                return response()->json(['error' => 'User hasn\'t authorization'], 422);
             }
         }
 
@@ -78,7 +92,7 @@ class TaskController extends Controller
         // Return response
         return response()->json([
             'message' => 'Task updated successfully',
-            'data' => $task->load(['project', 'assignTo', 'priority', 'type', 'status']),
+            'data' => $task->load(['project', 'assignTo', 'priority', 'type', 'status', 'creator']),
         ], 200);
     }
 
@@ -87,12 +101,16 @@ class TaskController extends Controller
         // Lấy user hiện tại
         $user = auth()->user();
 
-        //        dd($user);
-
-        $projectIds = $user->projects()->pluck('projects.id')->toArray();
-
-        $tasks = Task::with(['project', 'assignTo', 'priority', 'type', 'status', 'logs.user'])
-            ->whereIn('project_id', $projectIds);
+        // Kiểm tra nếu user thuộc department "admin"
+        if ($user->department && strtolower($user->department->name) === 'admin') {
+            // Admin: lấy tất cả task
+            $tasks = Task::with(['project', 'assignTo', 'creator', 'priority', 'type', 'status', 'logs.user', 'histories.user']);
+        } else {
+            // Người dùng thường: chỉ lấy các task trong dự án mà họ tham gia
+            $projectIds = $user->projects()->pluck('projects.id')->toArray();
+            $tasks = Task::with(['project', 'assignTo', 'creator', 'priority', 'type', 'status', 'logs.user', 'histories.user'])
+                ->whereIn('project_id', $projectIds);
+        }
 
         // Áp dụng bộ lọc (filter)
         if ($request->has('project_id')) {
@@ -120,13 +138,13 @@ class TaskController extends Controller
         }
 
         // Phân trang
-        $perPage = $request->input('per_page', 10);
-
-        $task = $tasks->orderBy('project_id')->paginate($perPage);
+        $perPage = $request->input('per_page', 50);
+        $paginatedTasks = $tasks->orderBy('project_id')->paginate($perPage);
 
         // Trả về danh sách task
-        return response()->json($task, 200);
+        return response()->json($paginatedTasks, 200);
     }
+
 
     public function show($id)
     {
@@ -135,5 +153,63 @@ class TaskController extends Controller
 
         // Trả về dữ liệu task
         return response()->json($task, 200);
+    }
+
+    public function destroy($id)
+    {
+        // Tìm task theo ID
+        $task = Task::find($id);
+
+        if (! $task) {
+            return response()->json([
+                'message' => 'Task not found.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // Xóa task
+        $task->delete();
+
+        return response()->json([
+            'message' => 'Task deleted successfully.',
+        ], Response::HTTP_OK);
+    }
+
+    public function updateStatus(Request $request, $id): JsonResponse
+    {
+        // Xác thực dữ liệu đầu vào
+        $validated = $request->validate([
+            'status_id' => 'required|integer|exists:task_status,id', // Giả sử bạn có bảng 'task_statuses'
+        ]);
+
+        try {
+            // Tìm task theo ID
+            $task = Task::findOrFail($id);
+
+            // Lưu trạng thái cũ trước khi cập nhật
+            $oldStatusId = $task->status_id;
+
+            // Cập nhật trạng thái mới
+            $task->status_id = $validated['status_id'];
+            $task->save(); // Lưu thay đổi
+
+            TaskHistory::create([
+                'task_id' => $task->id,
+                'user_id' => auth()->id(), // Giả sử bạn sử dụng middleware auth
+                'action' => 'update_status',
+                'old_value' => json_encode(['status_id' => $oldStatusId]),
+                'new_value' => json_encode(['status_id' => $validated['status_id']]),
+                'description' => 'Task status updated.',
+            ]);
+
+            return response()->json([
+                'message' => 'Task status updated successfully.',
+                'data' => $task,
+            ], Response::HTTP_OK);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => 'Validation error.'], Response::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update task status.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
     }
 }

@@ -25,6 +25,7 @@ class Task extends Model
         'spent_time',
         'estimated_time',
         'remaining_time',
+        'created_by',
     ];
 
     // Relationships
@@ -58,11 +59,20 @@ class Task extends Model
         return $this->hasMany(TaskLog::class);
     }
 
+    public function histories()
+    {
+        return $this->hasMany(TaskHistory::class,'task_id');
+    }
+
     public function updateTimeSpent()
     {
         $this->spent_time = $this->logs()->sum('logged_time');
 
         $this->save();
+    }
+
+    public function creator(){
+        return $this->belongsTo(User::class, 'created_by');
     }
 }
 

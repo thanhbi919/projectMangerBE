@@ -34,8 +34,8 @@ class AppServiceProvider extends ServiceProvider
 
         Task::observe(TaskObserver::class);
 
-        Gate::define('create-task', function (User $user,Task $task) {
-            return $user->department()->name === 'PM';
-        });
+//        Gate::define('create-task', function (User $user, Task $task) {
+//            return $user->department()->name === 'PM';
+//        });
     }
 }

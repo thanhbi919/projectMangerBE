@@ -25,7 +25,7 @@ class AuthenticatedSessionController extends Controller
             $request->authenticate();
             $request->session()->regenerate();
 
-            $user = Auth::user();
+            $user = Auth::user()->load('department:id,name');
 
             return response()->json(['message' => 'Successfully logged in.', 'data' => $user], Response::HTTP_OK);
         } catch (Exception $e) {
@@ -51,11 +51,13 @@ class AuthenticatedSessionController extends Controller
 
     public function currentUser(Request $request)
     {
-        $user = auth()->user();
+        $user = auth()->user()->load('department:id,name');
+
+
         if ($user) {
             return response()->json($user, 200);
         }
+
         return response()->json(['message' => 'Not authenticated'], 401);
     }
-
 }

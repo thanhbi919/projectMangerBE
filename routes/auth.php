@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\ImageController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStatusController;
 use App\Http\Controllers\RoleController;
@@ -49,6 +50,11 @@ Route::post('/api/auth/logout', [AuthenticatedSessionController::class, 'destroy
     ->middleware('auth')
     ->name('logout');
 
+Route::get('/api/users', [UserController::class, 'index']);
+Route::delete('/users/{id}', [UserController::class, 'destroy']);
+Route::post('/upload-image', [ImageController::class, 'upload']);
+
+
 //Route::get('/api/projects', [ProjectController::class, 'index'])->middleware('auth')->name(' projects.index');
 //Route::get('/api/projects/{id}', [ProjectController::class, 'show'])->middleware('auth')->name('projects.show');
 //Route::post('/api/projects', [ProjectController::class, 'store'])->middleware('auth')->name('projects.store');
@@ -64,6 +70,8 @@ Route::get('/api/tasks/statuses', [TaskMetadataController::class, 'getTaskStatus
 Route::get('/api/tasks/priorities', [TaskMetadataController::class, 'getPriorities'])->name('priorities');
 Route::apiResource('/api/tasks', TaskController::class)->middleware('auth');
 Route::post('/api/tasks/log-work', [TaskLogController::class, 'logWork'])->middleware('auth')->name('log-work');
+Route::put('/api/tasks/{id}/status', [TaskController::class, 'updateStatus'])->middleware('auth')->name('update-status');
+Route::delete('/tasks/{id}', [TaskController::class, 'destroy'])->middleware('auth')->name('destroy');
 
 Route::get('/api/types', [TypeController::class, 'index'])->middleware('auth')->name('types.index');
 Route::apiResource('/api/users', UserController::class)->middleware('auth');

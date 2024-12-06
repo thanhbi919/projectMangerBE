@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TaskHistory;
 use App\Models\TaskLog;
 use Illuminate\Http\Request;
 
@@ -18,6 +19,17 @@ class TaskLogController extends Controller
 
         // Tạo log work
         $log = TaskLog::create($validated);
+        TaskHistory::create([
+            'task_id' => $validated['task_id'],
+            'user_id' => $validated['user_id'],
+            'action' => 'log_work',
+            'old_value' => null,
+            'new_value' => json_encode([
+                'log_date' => $validated['log_date'],
+                'logged_time' => $validated['logged_time'],
+            ]),
+            'description' => 'User logged work for the task.',
+        ]);
 
         return response()->json([
             'message' => 'Log work recorded successfully.',
