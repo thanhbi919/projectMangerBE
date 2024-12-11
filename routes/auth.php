@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\NewPasswordController;
@@ -77,3 +78,9 @@ Route::get('/api/types', [TypeController::class, 'index'])->middleware('auth')->
 Route::apiResource('/api/users', UserController::class)->middleware('auth');
 Route::get('/api/roles', [RoleController::class, 'index'])->middleware('auth')->name('roles.index');
 Route::get('/api/departments', [DepartmentController::class, 'index'])->middleware('auth')->name('departments.index');
+
+
+
+Route::get('api/dashboard/admin/overview', [AdminDashboardController::class, 'overview']);
+Route::get('api/dashboard/admin/project-distribution', [AdminDashboardController::class, 'projectDistribution']);
+Route::get('api/dashboard/admin/task-distribution', [AdminDashboardController::class, 'taskDistribution']);
