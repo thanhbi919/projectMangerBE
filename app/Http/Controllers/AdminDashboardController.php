@@ -7,6 +7,7 @@ use App\Models\Task;
 use App\Models\TaskLog;
 use App\Models\TaskStatus;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
@@ -78,7 +79,7 @@ class AdminDashboardController extends Controller
         ]);
     }
 
-public function taskDistribution()
+    public function taskDistribution()
     {
         $allStatuses = TaskStatus::all(['id', 'name']);
 
@@ -100,4 +101,147 @@ public function taskDistribution()
             'data' => $result,
         ]);
     }
+
+
+    public function pmOverview()
+    {
+        $user = Auth()->user();
+
+        // Lấy danh sách dự án mà PM đang quản lý
+        $projects = $user->projects()->withCount(['tasks', 'users'])->get();
+
+        // Tổng hợp thống kê
+        $totalProjects = $projects->count();
+        $totalTasks = $projects->sum('tasks_count');
+        $totalMembers = $projects->sum('users_count');
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'total_projects' => $totalProjects,
+                'total_tasks' => $totalTasks,
+                'total_members' => $totalMembers,
+            ],
+        ]);
+    }
+
+    public function taskProgress()
+    {
+        $user = Auth()->user();
+
+        // Lấy danh sách các trạng thái từ bảng `task_status`
+        $allStatuses = \App\Models\TaskStatus::all(['id', 'name']);
+
+        // Lấy danh sách dự án mà PM đang quản lý
+        $projects = $user->projects()->with(['tasks.status'])->get();
+
+        // Xử lý dữ liệu
+        $data = $projects->map(function ($project) use ($allStatuses) {
+            // Thống kê task theo trạng thái
+            $tasksByStatus = $project->tasks->groupBy('status_id')->map->count();
+
+            // Gán `count = 0` cho trạng thái không có task
+            $statusCounts = $allStatuses->mapWithKeys(function ($status) use ($tasksByStatus) {
+                return [$status->name => $tasksByStatus->get($status->id, 0)];
+            });
+
+            // Tính phần trăm hoàn thành
+            $totalTasks = $statusCounts->sum();
+            $completedTasks = $statusCounts->get('Completed', 0);
+            $completionPercentage = $totalTasks > 0 ? ($completedTasks / $totalTasks) * 100 : 0;
+
+            return [
+                'project_name' => $project->title,
+                'tasks' => $statusCounts,
+                'completion_percentage' => round($completionPercentage, 2),
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+        ]);
+    }
+
+    public function taskByMember(Request $request)
+    {
+        $user = $request->user();
+
+
+        $projectId = $request->input('project_id');
+
+        $query = Task::query()
+            ->with(['assignTo', 'status']) // Eager load bảng task_status
+            ->whereHas('project', function ($q) use ($user, $projectId) {
+                $q->whereIn('id', $user->projects->pluck('id'));
+                if ($projectId) {
+                    $q->where('id', $projectId);
+                }
+            });
+
+        // Group dữ liệu theo thành viên
+        $tasks = $query->get()->groupBy('assign_to');
+
+        $result = $tasks->map(function ($userTasks, $userId) {
+            $open = $userTasks->where('status_id', '1')->count();
+            $inProgress = $userTasks->where('status_id', '2')->count();
+            $pending = $userTasks->where('status_id', '3')->count();
+            $done = $userTasks->where('status_id', '4')->count();
+
+            $overdue = $userTasks->where('due_date', '<', now())->count();
+
+            return [
+                'member_id' => $userId,
+                'member_name' => $userTasks->first()->assignTo->name ?? 'N/A',
+                'total_tasks' => $userTasks->count(),
+                'open' => $open,
+                'in_progress' => $inProgress,
+                'pending' => $pending,
+                'done' => $done,
+                'overdue_tasks' => $overdue,
+            ];
+        })->values();
+
+        return response()->json(['status' => 'success', 'data' => $result], 200);
+    }
+
+    public function myTasks(Request $request)
+    {
+        $user = $request->user();
+
+        // Lấy tất cả task mà user được assign
+        $tasks = Task::with('status','project') // Load trạng thái task
+        ->where('assign_to', $user->id) // Chỉ lấy task của user hiện tại
+        ->get();
+//        dd($tasks);
+
+        // Tính toán dữ liệu thống kê
+        $openTasks = $tasks->where('status_id', '1')->count();
+        $inProgressTasks = $tasks->where('status_id', '2')->count();
+        $pendingTasks = $tasks->where('status_id', '3')->count();
+        $doneTasks = $tasks->where('status_id', '4')->count();
+        $overdueTasks = $tasks->where('due_date', '<', now())->count();
+        // Chuẩn bị dữ liệu trả về
+        $data = [
+            'project'=>$tasks,
+            'member_id' => $user->id,
+            'member_name' => $user->name,
+            'total_tasks' => $tasks->count(),
+            'open' => $openTasks,
+            'in_progress' => $inProgressTasks,
+            'pending' => $pendingTasks,
+            'done' => $doneTasks,
+            'overdue_tasks' => $overdueTasks,
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [$data], // Đặt trong mảng để giống cấu trúc mẫu
+        ]);
+    }
+
+
+
+
 }
+

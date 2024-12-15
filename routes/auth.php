@@ -82,5 +82,9 @@ Route::get('/api/departments', [DepartmentController::class, 'index'])->middlewa
 
 
 Route::get('api/dashboard/admin/overview', [AdminDashboardController::class, 'overview']);
+Route::get('api/dashboard/pm/overview', [AdminDashboardController::class, 'pmOverview']);
+Route::get('api/dashboard/pm/task-progress', [AdminDashboardController::class, 'taskProgress']);
 Route::get('api/dashboard/admin/project-distribution', [AdminDashboardController::class, 'projectDistribution']);
 Route::get('api/dashboard/admin/task-distribution', [AdminDashboardController::class, 'taskDistribution']);
+Route::get('api/dashboard/pm/task-by-member', [AdminDashboardController::class, 'taskByMember']);
+Route::get('api/dashboard/pm/my-task', [AdminDashboardController::class, 'myTasks']);
